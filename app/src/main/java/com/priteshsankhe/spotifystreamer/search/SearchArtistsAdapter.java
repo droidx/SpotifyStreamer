@@ -1,6 +1,7 @@
 package com.priteshsankhe.spotifystreamer.search;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
     public SearchArtistsAdapter(Context context, List<SpotifyArtist> spotifyArtistList){
         this.context = context;
         this.spotifyArtistList = spotifyArtistList;
+        SpotifyArtistViewHolder.context = context;
     }
 
     @Override
@@ -55,6 +57,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
         private final TextView spotifyArtistNameTextView;
 
         private SpotifyArtist artist;
+        private static Context context;
 
         public SpotifyArtistViewHolder(View itemView) {
             super(itemView);
@@ -65,6 +68,8 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
                 @Override
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
+                    Intent intent = new Intent(context, TopTracksActivity.class);
+                    context.startActivity(intent);
                 }
             });
         }

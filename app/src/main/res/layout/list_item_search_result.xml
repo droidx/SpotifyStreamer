@@ -11,8 +11,8 @@
         android:id="@+id/list_item_search_result_thumbnail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxWidth="200px"
-        android:maxHeight="200px"
+        android:minWidth="200px"
+        android:minHeight="200px"
         tools:src="@mipmap/ic_launcher"
         />
 

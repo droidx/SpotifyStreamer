@@ -63,7 +63,7 @@ public class SearchArtistsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_search_artists, container, false);
         recyclerView = (RecyclerView) rootView.findViewById(R.id.artist_list_recycler_view);
         searchView = (SearchView) rootView.findViewById(R.id.artist_search_view);
-        progressBar = (ProgressBar) rootView.findViewById(R.id.search_result_progress_bar);
+        progressBar = (ProgressBar) rootView.findViewById(R.id.result_progress_bar);
         noResultsFoundTextView = (TextView) rootView.findViewById(R.id.search_results_not_found_textview);
 
         linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -114,7 +114,7 @@ public class SearchArtistsFragment extends Fragment {
 
         if (savedInstanceState != null) {
 
-            if(savedInstanceState.getInt(NO_RESULTS_TEXTVIEW_VISIBILITY) == View.VISIBLE){
+            if (savedInstanceState.getInt(NO_RESULTS_TEXTVIEW_VISIBILITY) == View.VISIBLE) {
                 noResultsFoundTextView.setVisibility(View.VISIBLE);
             }
             artistList = savedInstanceState.getParcelableArrayList(SPOTIFY_ARTIST);
@@ -136,7 +136,9 @@ public class SearchArtistsFragment extends Fragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBar.setVisibility(View.VISIBLE);
+            if (progressBar != null && progressBar.getVisibility() == View.GONE) {
+                progressBar.setVisibility(View.VISIBLE);
+            }
             noResultsFoundTextView.setVisibility(View.GONE);
         }
 
@@ -172,13 +174,17 @@ public class SearchArtistsFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            progressBar.setVisibility(View.GONE);
+
+            if (progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
+                progressBar.setVisibility(View.GONE);
+            }
             if (spotifyError != null) {
                 Toast.makeText(getActivity(), "Something went wrong! " + spotifyError.getMessage(), Toast.LENGTH_LONG).show();
             } else {
                 // if no artists are found, write a message to the textview
                 if (artistList.isEmpty()) {
                     noResultsFoundTextView.setVisibility(View.VISIBLE);
+                    noResultsFoundTextView.setText(R.string.no_artist_found);
                 }
                 searchArtistsAdapter.notifyDataSetChanged();
             }

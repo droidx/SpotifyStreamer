@@ -12,30 +12,19 @@
         android:layout_height="wrap_content"
         android:inputType="text"
         app:iconifiedByDefault="false"
-        app:queryHint="@string/search_view_query_hint"></android.support.v7.widget.SearchView>
+        app:queryHint="@string/search_view_query_hint">
+    </android.support.v7.widget.SearchView>
 
-    <ProgressBar
-        android:id="@+id/search_result_progress_bar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="16dp"
-        android:visibility="gone" />
+    <include layout="@layout/progressbar" />
 
     <TextView
         android:id="@+id/search_results_not_found_textview"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:textSize="16sp"
-        android:text="No artists found"
-        android:visibility="gone" />
+        android:text="@string/no_artist_found"
+        style="@style/NoResultsTextViewStyle" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/artist_list_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
-
-
+        android:layout_height="match_parent">
+    </android.support.v7.widget.RecyclerView>
 </LinearLayout>

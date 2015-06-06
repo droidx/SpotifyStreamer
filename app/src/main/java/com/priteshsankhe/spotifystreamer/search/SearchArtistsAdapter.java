@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.priteshsankhe.spotifystreamer.R;
+import com.priteshsankhe.spotifystreamer.artist.TopTracksActivity;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 import com.squareup.picasso.Picasso;
 
@@ -69,6 +70,8 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
                     Intent intent = new Intent(context, TopTracksActivity.class);
+                    intent.putExtra("artistId", artist.getSpotifyArtistId());
+                    intent.putExtra("artistName", artist.getArtistName());
                     context.startActivity(intent);
                 }
             });

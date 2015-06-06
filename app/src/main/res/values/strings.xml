@@ -5,4 +5,6 @@
 
     <string name="search_view_query_hint">Search artists</string>
     <string name="title_activity_top_tracks">TopTracksActivity</string>
+    <string name="no_artist_found">No artists found</string>
+    <string name="top_ten_tracks">Top 10 Tracks</string>
 </resources>

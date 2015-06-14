@@ -16,14 +16,11 @@ public class SpotifyUtils {
 
     public static String fetchOptimizedImageURL(final List<Image> artistImages, final int optimalImageSize){
 
-        Log.d(TAG, "Images " + artistImages.size() + " optimal size : " + optimalImageSize);
         String optimizedThumbnailURL = null;
         int minDifference = Integer.MAX_VALUE;
 
         for (Image artistImageThumbnail : artistImages){
             if(null != artistImageThumbnail.url && !artistImageThumbnail.url.isEmpty()){
-
-                Log.d(TAG, "Height" + artistImageThumbnail.height);
                 final int dimensionDifference = Math.abs(artistImageThumbnail.height - optimalImageSize);
                 if(dimensionDifference < minDifference){
                     minDifference = dimensionDifference;
@@ -31,7 +28,7 @@ public class SpotifyUtils {
                 }
             }
         }
-
+        Log.d(TAG, "Optimized Thumbnail Url " + optimizedThumbnailURL);
         return optimizedThumbnailURL;
     }
 }

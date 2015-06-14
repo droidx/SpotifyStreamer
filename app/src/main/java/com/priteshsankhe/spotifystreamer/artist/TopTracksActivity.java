@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.priteshsankhe.spotifystreamer.R;
+import com.priteshsankhe.spotifystreamer.search.SearchArtistsFragment;
 
 public class TopTracksActivity extends AppCompatActivity {
 
@@ -22,39 +23,16 @@ public class TopTracksActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setTitle(getString(R.string.top_ten_tracks));
 
-        final String artistName = getIntent().getStringExtra("artistName");
+        final String artistName = getIntent().getStringExtra(SearchArtistsFragment.INTENT_ARTIST_NAME);
         getSupportActionBar().setSubtitle(artistName);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         topTracksActivityFragment = (TopTracksActivityFragment) fragmentManager.findFragmentByTag(TAG_TOP_TRACKS_FRAGMENT);
 
-        if(topTracksActivityFragment == null){
+        if (topTracksActivityFragment == null) {
             topTracksActivityFragment = new TopTracksActivityFragment();
             fragmentManager.beginTransaction().add(topTracksActivityFragment, TAG_TOP_TRACKS_FRAGMENT).commit();
         }
 
-    }
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_top_tracks, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        if(id == android.R.id.home){
-            NavUtils.navigateUpFromSameTask(this);
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

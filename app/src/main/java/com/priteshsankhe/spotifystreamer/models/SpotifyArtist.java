@@ -6,6 +6,10 @@ import android.os.Parcelable;
 /**
  * Created by Pritesh on 6/4/2015.
  */
+
+/**
+ * POJO for SpotifyArtist
+ */
 public class SpotifyArtist implements Parcelable{
 
     private String artistName;

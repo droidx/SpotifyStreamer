@@ -16,6 +16,7 @@ import java.util.List;
 
 /**
  * Created by Pritesh on 6/5/2015.
+ * RecyclerView adapter for spotify artist tracks data.
  */
 public class TopTracksAdapter extends RecyclerView.Adapter<TopTracksAdapter.TopTracksViewHolder> {
 
@@ -39,7 +40,7 @@ public class TopTracksAdapter extends RecyclerView.Adapter<TopTracksAdapter.TopT
     @Override
     public void onBindViewHolder(TopTracksViewHolder topTracksViewHolder, int position) {
         SpotifyArtistTrack spotifyArtistTrack = spotifyArtistTrackList.get(position);
-        Picasso.with(context).load(spotifyArtistTrack.getAlbumArtSmallThumbnailURL()).resize(200,200).centerCrop().into(topTracksViewHolder.getTopTrackThumbnail());
+        Picasso.with(context).load(spotifyArtistTrack.getAlbumArtSmallThumbnailURL()).resize(200,200).centerCrop().placeholder(R.drawable.ic_placeholder).into(topTracksViewHolder.getTopTrackThumbnail());
         topTracksViewHolder.getTopTrackTrackNameTextView().setText(spotifyArtistTrack.getTrackName().trim().toString());
         topTracksViewHolder.getTopTrackAlbumNameTextView().setText(spotifyArtistTrack.getAlbumName().trim().toString());
     }

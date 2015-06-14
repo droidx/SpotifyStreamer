@@ -14,6 +14,7 @@ import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.priteshsankhe.spotifystreamer.R;
+import com.priteshsankhe.spotifystreamer.listeners.TaskListener;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 import com.priteshsankhe.spotifystreamer.utility.SpotifyUtils;
 
@@ -31,16 +32,24 @@ import retrofit.RetrofitError;
  * This fragment searches for an artist and displays results
  * It uses the Spotify-Web-Api-Wrapper library https://github.com/kaaes/spotify-web-api-android
  * to search for artists.
+ *
+ * This project utilizes Picasso and Spotify-Web-Api-Wrapper third party libraries
+ * Picasso : http://square.github.io/picasso/
  */
-public class SearchArtistsFragment extends Fragment {
+public class SearchArtistsFragment extends Fragment implements TaskListener {
 
     private static final String TAG = SearchArtistsFragment.class.getSimpleName();
 
+    // Constants for key values for bundle during onSaveInstanceState and onRestoreInstanceState
     private static final String NO_RESULTS_TEXTVIEW_VISIBILITY = "NO_RESULTS_TEXTVIEW_VISIBILITY";
     private static final String SPOTIFY_ARTIST = "SPOTIFY_ARTIST";
     private static final String QUERY_TEXT = "QUERY_TEXT";
 
+    // Optimal size of 200px for Artist Thumbnail Image
     private static final int ARTIST_THUMBNAIL_OPTIMIZED_IMAGE_SIZE = 200;
+
+    public static final String INTENT_ARTIST_ID = "ARTIST_ID";
+    public static final String INTENT_ARTIST_NAME = "ARTIST_NAME";
 
     // UI elements
     private RecyclerView recyclerView;
@@ -52,8 +61,10 @@ public class SearchArtistsFragment extends Fragment {
     private LinearLayoutManager linearLayoutManager;
     private ArrayList<SpotifyArtist> artistList;
 
+    // AsyncTask for fetching artist data using the Spotify Web-Api-Wrapper
     private FetchArtistsTask fetchArtistsTask;
     private static CharSequence queryText = null;
+    private boolean isTaskRunning = false;
 
     public SearchArtistsFragment() {
     }
@@ -69,37 +80,78 @@ public class SearchArtistsFragment extends Fragment {
         progressBar = (ProgressBar) rootView.findViewById(R.id.result_progress_bar);
         noResultsFoundTextView = (TextView) rootView.findViewById(R.id.search_results_not_found_textview);
 
+        // Restore state on rotation or if destroyed
+        if (savedInstanceState != null) {
+
+            // Check if asynctask is running
+            if (isTaskRunning) {
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.VISIBLE);
+                }
+            }
+
+            // query text on the searchview
+            if (savedInstanceState.getCharSequence(QUERY_TEXT) != null) {
+                queryText = savedInstanceState.getCharSequence(QUERY_TEXT);
+                searchView.setQuery(queryText, false);
+            }
+
+            if (savedInstanceState.getInt(NO_RESULTS_TEXTVIEW_VISIBILITY) == View.VISIBLE) {
+                noResultsFoundTextView.setVisibility(View.VISIBLE);
+            }
+            artistList = savedInstanceState.getParcelableArrayList(SPOTIFY_ARTIST);
+
+        } else {
+            artistList = new ArrayList<SpotifyArtist>();
+        }
+
         linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        artistList = new ArrayList<SpotifyArtist>();
         searchArtistsAdapter = new SearchArtistsAdapter(getActivity(), artistList);
         recyclerView.setAdapter(searchArtistsAdapter);
 
+        // SearchView listener
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                                               @Override
                                               public boolean onQueryTextSubmit(String query) {
-                                                  Log.d(TAG, "query is : " + query);
                                                   if (!query.isEmpty()) {
-                                                      fetchArtistsTask = new FetchArtistsTask();
+                                                      if (null != fetchArtistsTask && !fetchArtistsTask.isCancelled()) {
+                                                          fetchArtistsTask.cancel(true);
+                                                      }
+                                                      fetchArtistsTask = new FetchArtistsTask(SearchArtistsFragment.this);
                                                       fetchArtistsTask.execute(query);
                                                   }
-                                                  return true;
+                                                  return false;
                                               }
 
                                               @Override
                                               public boolean onQueryTextChange(String newText) {
+                                                  artistList.clear();
                                                   if (null != fetchArtistsTask && !fetchArtistsTask.isCancelled()) {
                                                       fetchArtistsTask.cancel(true);
                                                   }
-                                                  fetchArtistsTask = new FetchArtistsTask();
+
+                                                  // If no search query, don't execute asynctask just update the textview
+                                                  if (newText.isEmpty()) {
+
+                                                      if (null != progressBar && progressBar.isShown()) {
+                                                          progressBar.setVisibility(View.GONE);
+                                                      }
+                                                      artistList.clear();
+                                                      searchArtistsAdapter.notifyDataSetChanged();
+                                                      noResultsFoundTextView.setVisibility(View.VISIBLE);
+                                                      noResultsFoundTextView.setText(getActivity().getString(R.string.search_empty_search_text));
+                                                      return false;
+                                                  }
+
+                                                  fetchArtistsTask = new FetchArtistsTask(SearchArtistsFragment.this);
                                                   fetchArtistsTask.execute(newText);
-                                                  return true;
+                                                  return false;
                                               }
                                           }
 
         );
-
         return rootView;
     }
 
@@ -118,48 +170,55 @@ public class SearchArtistsFragment extends Fragment {
         outState.putCharSequence(QUERY_TEXT, searchView.getQuery());
     }
 
-
     @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        if (savedInstanceState != null) {
-            if (savedInstanceState.getCharSequence(QUERY_TEXT) != null) {
-                queryText = savedInstanceState.getCharSequence(QUERY_TEXT);
-                searchView.setQuery(queryText, false);
-            }
-
-            if (savedInstanceState.getInt(NO_RESULTS_TEXTVIEW_VISIBILITY) == View.VISIBLE) {
-                noResultsFoundTextView.setVisibility(View.VISIBLE);
-            }
-            artistList = savedInstanceState.getParcelableArrayList(SPOTIFY_ARTIST);
-            if (searchArtistsAdapter != null) {
-                searchArtistsAdapter.setSpotifyArtistList(artistList);
-                searchArtistsAdapter.notifyDataSetChanged();
-            } else {
-                searchArtistsAdapter = new SearchArtistsAdapter(getActivity(), artistList);
-                searchArtistsAdapter.notifyDataSetChanged();
-            }
+    public void onDetach() {
+        if (progressBar != null && progressBar.isShown()) {
+            progressBar.setVisibility(View.GONE);
         }
+        super.onDetach();
     }
 
+    @Override
+    public void onTaskStarted() {
+        isTaskRunning = true;
+        if (progressBar != null && progressBar.getVisibility() == View.GONE) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
+        noResultsFoundTextView.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onTaskFinished() {
+        isTaskRunning = false;
+        if (progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
+            progressBar.setVisibility(View.GONE);
+        }
+
+    }
+
+    /**
+     * This AsyncTask requests artist data via the Search for an Item endpoint.
+     * It fetches the thumbnail url optimized for 200px imageview using SpotifyUtils class.
+     * If no artists are found, the textview is updated.
+     */
     public class FetchArtistsTask extends AsyncTask<String, Void, Void> {
 
         private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
         private SpotifyError spotifyError = null;
+        private final TaskListener listener;
+
+        private FetchArtistsTask(TaskListener listener) {
+            this.listener = listener;
+        }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            if (progressBar != null && progressBar.getVisibility() == View.GONE) {
-                progressBar.setVisibility(View.VISIBLE);
-            }
-            noResultsFoundTextView.setVisibility(View.GONE);
+            listener.onTaskStarted();
         }
 
         @Override
         protected Void doInBackground(String... params) {
-
             artistList.clear();
             final String artistQuery = params[0];
             SpotifyApi spotifyApi = new SpotifyApi();
@@ -168,7 +227,6 @@ public class SearchArtistsFragment extends Fragment {
             try {
                 final ArtistsPager artistsPager = spotifyService.searchArtists(artistQuery);
                 for (Artist artist : artistsPager.artists.items) {
-
                     final String defaultImageURL = SpotifyUtils.fetchOptimizedImageURL(artist.images, ARTIST_THUMBNAIL_OPTIMIZED_IMAGE_SIZE);
                     artistList.add(new SpotifyArtist(artist.id, artist.name, defaultImageURL));
                 }
@@ -187,29 +245,28 @@ public class SearchArtistsFragment extends Fragment {
         @Override
         protected void onPostExecute(Void aVoid) {
 
-            if (progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
-                progressBar.setVisibility(View.GONE);
-            }
-            if (spotifyError != null) {
-                if(spotifyError.hasErrorDetails()){
-                    Log.d(TAG, "Spotify error code " + spotifyError.getErrorDetails().status);
-                    switch (spotifyError.getErrorDetails().status){
+            listener.onTaskFinished();
+            if (null != spotifyError) {
+
+                // Handle common errors
+                if (spotifyError.hasErrorDetails()) {
+                    switch (spotifyError.getErrorDetails().status) {
                         case 400:
                             noResultsFoundTextView.setVisibility(View.VISIBLE);
-                            noResultsFoundTextView.setText(getActivity().getString(R.string.empty_search_text));
+                            noResultsFoundTextView.setText(getActivity().getString(R.string.search_bad_request));
                             break;
                         case 404:
                             noResultsFoundTextView.setVisibility(View.VISIBLE);
-                            noResultsFoundTextView.setText(getActivity().getString(R.string.no_results_found));
+                            noResultsFoundTextView.setText(getActivity().getString(R.string.search_no_results_found));
                             break;
                     }
                 }
-                if(spotifyError.getMessage().contains("Unable to resolve host")){
+                if (spotifyError.getMessage().contains("Unable to resolve host")) {
                     noResultsFoundTextView.setVisibility(View.VISIBLE);
                     noResultsFoundTextView.setText(getActivity().getString(R.string.search_no_internet_connection));
                 }
             } else {
-                // if no artists are found, write a message to the textview
+                // if no artists are found, write a message to the TextView
                 if (artistList.isEmpty()) {
                     noResultsFoundTextView.setVisibility(View.VISIBLE);
                     noResultsFoundTextView.setText(R.string.no_artist_found);

@@ -19,15 +19,18 @@ import java.util.List;
 
 /**
  * Created by Pritesh on 6/4/2015.
+ * RecyclerView adapter for spotify artist data.
  */
 public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdapter.SpotifyArtistViewHolder> {
 
     private static final String TAG = SearchArtistsAdapter.class.getSimpleName();
 
+
+
     private Context context;
     private List<SpotifyArtist> spotifyArtistList;
 
-    public SearchArtistsAdapter(Context context, List<SpotifyArtist> spotifyArtistList) {
+    public SearchArtistsAdapter(Context context, final List<SpotifyArtist> spotifyArtistList) {
         this.context = context;
         this.spotifyArtistList = spotifyArtistList;
         SpotifyArtistViewHolder.context = context;
@@ -41,13 +44,8 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
 
     @Override
     public void onBindViewHolder(SpotifyArtistViewHolder spotifyArtistViewHolder, int i) {
-        SpotifyArtist spotifyArtist = spotifyArtistList.get(i);
-
-        if (spotifyArtist.getArtistThumbnailImageURL() == null) {
-            Picasso.with(context).load(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
-        } else {
-            Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
-        }
+        final SpotifyArtist spotifyArtist = spotifyArtistList.get(i);
+        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
         spotifyArtistViewHolder.getSpotifyArtistNameTextView().setText(spotifyArtist.getArtistName());
         spotifyArtistViewHolder.setArtist(spotifyArtistList.get(i));
     }
@@ -75,8 +73,8 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
                     Intent intent = new Intent(context, TopTracksActivity.class);
-                    intent.putExtra("artistId", artist.getSpotifyArtistId());
-                    intent.putExtra("artistName", artist.getArtistName());
+                    intent.putExtra(SearchArtistsFragment.INTENT_ARTIST_ID, artist.getSpotifyArtistId());
+                    intent.putExtra(SearchArtistsFragment.INTENT_ARTIST_NAME, artist.getArtistName());
                     context.startActivity(intent);
                 }
             });
@@ -90,12 +88,12 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
             return spotifyArtistNameTextView;
         }
 
-        public void setArtist(SpotifyArtist artist) {
+        public void setArtist(final SpotifyArtist artist) {
             this.artist = artist;
         }
     }
 
-    public void setSpotifyArtistList(List<SpotifyArtist> spotifyArtistList) {
+    public void setSpotifyArtistList(final List<SpotifyArtist> spotifyArtistList) {
         this.spotifyArtistList = spotifyArtistList;
     }
 }

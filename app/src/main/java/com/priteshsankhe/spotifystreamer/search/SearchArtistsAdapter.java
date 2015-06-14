@@ -20,14 +20,14 @@ import java.util.List;
 /**
  * Created by Pritesh on 6/4/2015.
  */
-public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdapter.SpotifyArtistViewHolder>{
+public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdapter.SpotifyArtistViewHolder> {
 
     private static final String TAG = SearchArtistsAdapter.class.getSimpleName();
 
     private Context context;
     private List<SpotifyArtist> spotifyArtistList;
 
-    public SearchArtistsAdapter(Context context, List<SpotifyArtist> spotifyArtistList){
+    public SearchArtistsAdapter(Context context, List<SpotifyArtist> spotifyArtistList) {
         this.context = context;
         this.spotifyArtistList = spotifyArtistList;
         SpotifyArtistViewHolder.context = context;
@@ -42,7 +42,12 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
     @Override
     public void onBindViewHolder(SpotifyArtistViewHolder spotifyArtistViewHolder, int i) {
         SpotifyArtist spotifyArtist = spotifyArtistList.get(i);
-        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
+
+        if (spotifyArtist.getArtistThumbnailImageURL() == null) {
+            Picasso.with(context).load(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
+        } else {
+            Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
+        }
         spotifyArtistViewHolder.getSpotifyArtistNameTextView().setText(spotifyArtist.getArtistName());
         spotifyArtistViewHolder.setArtist(spotifyArtistList.get(i));
     }

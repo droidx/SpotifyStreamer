@@ -7,4 +7,7 @@
     <string name="title_activity_top_tracks">TopTracksActivity</string>
     <string name="no_artist_found">No artists found</string>
     <string name="top_ten_tracks">Top 10 Tracks</string>
+    <string name="empty_search_text">Start searching by typing in the search bar!</string>
+    <string name="no_results_found">Not found!</string>
+    <string name="search_no_internet_connection">Check internet settings and retry!</string>
 </resources>

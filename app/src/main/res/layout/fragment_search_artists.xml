@@ -6,14 +6,14 @@
     android:orientation="vertical"
     tools:context=".MainActivityFragment">
 
-    <android.support.v7.widget.SearchView
+    <SearchView
         android:id="@+id/artist_search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="text"
-        app:iconifiedByDefault="false"
-        app:queryHint="@string/search_view_query_hint">
-    </android.support.v7.widget.SearchView>
+        android:iconifiedByDefault="false"
+        android:queryHint="@string/search_view_query_hint">
+    </SearchView>
 
     <include layout="@layout/progressbar" />
 

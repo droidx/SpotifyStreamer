@@ -5,27 +5,25 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
+import com.priteshsankhe.spotifystreamer.utility.SpotifyUtils;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
-import kaaes.spotify.webapi.android.models.Image;
 import retrofit.RetrofitError;
 
 
@@ -40,6 +38,9 @@ public class SearchArtistsFragment extends Fragment {
 
     private static final String NO_RESULTS_TEXTVIEW_VISIBILITY = "NO_RESULTS_TEXTVIEW_VISIBILITY";
     private static final String SPOTIFY_ARTIST = "SPOTIFY_ARTIST";
+    private static final String QUERY_TEXT = "QUERY_TEXT";
+
+    private static final int ARTIST_THUMBNAIL_OPTIMIZED_IMAGE_SIZE = 200;
 
     // UI elements
     private RecyclerView recyclerView;
@@ -52,9 +53,11 @@ public class SearchArtistsFragment extends Fragment {
     private ArrayList<SpotifyArtist> artistList;
 
     private FetchArtistsTask fetchArtistsTask;
+    private static CharSequence queryText = null;
 
     public SearchArtistsFragment() {
     }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -74,21 +77,28 @@ public class SearchArtistsFragment extends Fragment {
         recyclerView.setAdapter(searchArtistsAdapter);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                Log.d(TAG, "query is : " + query);
-                if (!query.isEmpty()) {
-                    fetchArtistsTask = new FetchArtistsTask();
-                    fetchArtistsTask.execute(query);
-                }
-                return false;
-            }
+                                              @Override
+                                              public boolean onQueryTextSubmit(String query) {
+                                                  Log.d(TAG, "query is : " + query);
+                                                  if (!query.isEmpty()) {
+                                                      fetchArtistsTask = new FetchArtistsTask();
+                                                      fetchArtistsTask.execute(query);
+                                                  }
+                                                  return true;
+                                              }
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
+                                              @Override
+                                              public boolean onQueryTextChange(String newText) {
+                                                  if (null != fetchArtistsTask && !fetchArtistsTask.isCancelled()) {
+                                                      fetchArtistsTask.cancel(true);
+                                                  }
+                                                  fetchArtistsTask = new FetchArtistsTask();
+                                                  fetchArtistsTask.execute(newText);
+                                                  return true;
+                                              }
+                                          }
+
+        );
 
         return rootView;
     }
@@ -105,6 +115,7 @@ public class SearchArtistsFragment extends Fragment {
         super.onSaveInstanceState(outState);
         outState.putInt(NO_RESULTS_TEXTVIEW_VISIBILITY, noResultsFoundTextView.getVisibility());
         outState.putParcelableArrayList(SPOTIFY_ARTIST, artistList);
+        outState.putCharSequence(QUERY_TEXT, searchView.getQuery());
     }
 
 
@@ -113,6 +124,10 @@ public class SearchArtistsFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null) {
+            if (savedInstanceState.getCharSequence(QUERY_TEXT) != null) {
+                queryText = savedInstanceState.getCharSequence(QUERY_TEXT);
+                searchView.setQuery(queryText, false);
+            }
 
             if (savedInstanceState.getInt(NO_RESULTS_TEXTVIEW_VISIBILITY) == View.VISIBLE) {
                 noResultsFoundTextView.setVisibility(View.VISIBLE);
@@ -154,15 +169,7 @@ public class SearchArtistsFragment extends Fragment {
                 final ArtistsPager artistsPager = spotifyService.searchArtists(artistQuery);
                 for (Artist artist : artistsPager.artists.items) {
 
-                    String defaultImageURL = "https://i.scdn.co/image/18141db33353a7b84c311b7068e29ea53fad2326";
-                    List<Image> images = artist.images;
-                    for (Image image : images) {
-                        if (image.url != null && !image.url.isEmpty()) {
-                            if (image.height >= 200 && image.height <= 640) {
-                                defaultImageURL = image.url;
-                            }
-                        }
-                    }
+                    final String defaultImageURL = SpotifyUtils.fetchOptimizedImageURL(artist.images, ARTIST_THUMBNAIL_OPTIMIZED_IMAGE_SIZE);
                     artistList.add(new SpotifyArtist(artist.id, artist.name, defaultImageURL));
                 }
             } catch (RetrofitError error) {
@@ -173,20 +180,43 @@ public class SearchArtistsFragment extends Fragment {
         }
 
         @Override
+        protected void onCancelled(Void aVoid) {
+            super.onCancelled(aVoid);
+        }
+
+        @Override
         protected void onPostExecute(Void aVoid) {
 
             if (progressBar != null && progressBar.getVisibility() == View.VISIBLE) {
                 progressBar.setVisibility(View.GONE);
             }
             if (spotifyError != null) {
-                Toast.makeText(getActivity(), "Something went wrong! " + spotifyError.getMessage(), Toast.LENGTH_LONG).show();
+                if(spotifyError.hasErrorDetails()){
+                    Log.d(TAG, "Spotify error code " + spotifyError.getErrorDetails().status);
+                    switch (spotifyError.getErrorDetails().status){
+                        case 400:
+                            noResultsFoundTextView.setVisibility(View.VISIBLE);
+                            noResultsFoundTextView.setText(getActivity().getString(R.string.empty_search_text));
+                            break;
+                        case 404:
+                            noResultsFoundTextView.setVisibility(View.VISIBLE);
+                            noResultsFoundTextView.setText(getActivity().getString(R.string.no_results_found));
+                            break;
+                    }
+                }
+                if(spotifyError.getMessage().contains("Unable to resolve host")){
+                    noResultsFoundTextView.setVisibility(View.VISIBLE);
+                    noResultsFoundTextView.setText(getActivity().getString(R.string.search_no_internet_connection));
+                }
             } else {
                 // if no artists are found, write a message to the textview
                 if (artistList.isEmpty()) {
                     noResultsFoundTextView.setVisibility(View.VISIBLE);
                     noResultsFoundTextView.setText(R.string.no_artist_found);
+                } else {
+                    noResultsFoundTextView.setVisibility(View.GONE);
+                    searchArtistsAdapter.notifyDataSetChanged();
                 }
-                searchArtistsAdapter.notifyDataSetChanged();
             }
         }
     }

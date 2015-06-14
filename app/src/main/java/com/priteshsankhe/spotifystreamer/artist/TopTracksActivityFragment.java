@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtistTrack;
+import com.priteshsankhe.spotifystreamer.utility.SpotifyUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,6 +36,9 @@ public class TopTracksActivityFragment extends Fragment {
 
     private static final String SPOTIFY_TOP_TRACKS_OPTION_COUNTRY = "country";
     private static final String SPOTIFY_TOP_TRACKS_OPTION_COUNTRY_VALUE = "SE";
+
+    private static final int ALBUM_ART_THUMBNAIL_SMALL = 200;
+    private static final int ALBUM_ART_THUMBNAIL_LARGE = 640;
 
     private static final String SPOTIFY_TOP_TRACKS_LIST = "SPOTIFY_TOP_TRACKS_LIST";
 
@@ -122,8 +126,8 @@ public class TopTracksActivityFragment extends Fragment {
                 for (Track track : spotifyServiceArtistTopTrack.tracks) {
                     final String trackName = track.name;
                     final String albumName = track.album.name;
-                    final String albumArtSmallThumbnailURL = track.album.images.get(0).url;
-                    final String albumArtLargeThumbnailURL = track.album.images.get(0).url;
+                    final String albumArtSmallThumbnailURL = SpotifyUtils.fetchOptimizedImageURL(track.album.images, ALBUM_ART_THUMBNAIL_SMALL);
+                    final String albumArtLargeThumbnailURL = SpotifyUtils.fetchOptimizedImageURL(track.album.images, ALBUM_ART_THUMBNAIL_SMALL);
                     final String previewURL = track.preview_url;
                     topTracksList.add(new SpotifyArtistTrack(trackName, albumName, albumArtSmallThumbnailURL, albumArtLargeThumbnailURL, previewURL));
 

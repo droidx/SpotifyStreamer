@@ -13,6 +13,7 @@ import android.widget.TextView;
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.artist.TopTracksActivity;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
+import com.priteshsankhe.spotifystreamer.views.RoundedTransformation;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -24,8 +25,6 @@ import java.util.List;
 public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdapter.SpotifyArtistViewHolder> {
 
     private static final String TAG = SearchArtistsAdapter.class.getSimpleName();
-
-
 
     private Context context;
     private List<SpotifyArtist> spotifyArtistList;
@@ -45,7 +44,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
     @Override
     public void onBindViewHolder(SpotifyArtistViewHolder spotifyArtistViewHolder, int i) {
         final SpotifyArtist spotifyArtist = spotifyArtistList.get(i);
-        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
+        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).transform(new RoundedTransformation()).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
         spotifyArtistViewHolder.getSpotifyArtistNameTextView().setText(spotifyArtist.getArtistName());
         spotifyArtistViewHolder.setArtist(spotifyArtistList.get(i));
     }

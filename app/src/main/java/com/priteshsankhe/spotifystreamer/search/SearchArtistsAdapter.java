@@ -13,7 +13,6 @@ import android.widget.TextView;
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.artist.TopTracksActivity;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
-import com.priteshsankhe.spotifystreamer.views.RoundedTransformation;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
     @Override
     public void onBindViewHolder(SpotifyArtistViewHolder spotifyArtistViewHolder, int i) {
         final SpotifyArtist spotifyArtist = spotifyArtistList.get(i);
-        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).transform(new RoundedTransformation()).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
+        Picasso.with(context).load(spotifyArtist.getArtistThumbnailImageURL()).resize(200, 200).centerCrop().placeholder(R.drawable.ic_placeholder).into(spotifyArtistViewHolder.getSpotifyArtistThumbnail());
         spotifyArtistViewHolder.getSpotifyArtistNameTextView().setText(spotifyArtist.getArtistName());
         spotifyArtistViewHolder.setArtist(spotifyArtistList.get(i));
     }
@@ -72,8 +71,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
                     Intent intent = new Intent(context, TopTracksActivity.class);
-                    intent.putExtra(SearchArtistsFragment.INTENT_ARTIST_ID, artist.getSpotifyArtistId());
-                    intent.putExtra(SearchArtistsFragment.INTENT_ARTIST_NAME, artist.getArtistName());
+                    intent.putExtra("SPOTIFY_ARTIST", artist);
                     context.startActivity(intent);
                 }
             });

@@ -24,5 +24,9 @@ public class MainActivity extends AppCompatActivity {
             searchArtistsFragment = new SearchArtistsFragment();
             fragmentManager.beginTransaction().add(searchArtistsFragment, TAG_SEARCH_ARTIST_FRAGMENT).commit();
         }
+
+        if(findViewById(R.id.top_tracks_container) != null){
+            //TODO start top track fragment
+        }
     }
 }

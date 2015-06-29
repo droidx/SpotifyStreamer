@@ -14,8 +14,9 @@ import android.widget.TextView;
 
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.listeners.TaskListener;
+import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtistTrack;
-import com.priteshsankhe.spotifystreamer.search.SearchArtistsFragment;
+import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
 import com.priteshsankhe.spotifystreamer.utility.SpotifyUtils;
 
 import java.util.ArrayList;
@@ -52,6 +53,8 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     private TopTracksAdapter topTracksAdapter;
     private LinearLayoutManager linearLayoutManager;
     private ArrayList<SpotifyArtistTrack> topTracksList;
+    private SpotifyArtist spotifyArtist;
+    private SpotifyTrackPlayer spotifyTrackPlayer;
 
     private FetchTopTracksTask fetchTopTracksTask;
     private boolean isTaskRunning = false;
@@ -77,12 +80,17 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
             }
         } else {
             topTracksList = new ArrayList<SpotifyArtistTrack>();
-            final String artistID = getActivity().getIntent().getStringExtra(SearchArtistsFragment.INTENT_ARTIST_ID);
+            spotifyArtist = getActivity().getIntent().getParcelableExtra("SPOTIFY_ARTIST");
+            spotifyTrackPlayer = new SpotifyTrackPlayer();
+            spotifyTrackPlayer.setArtist(spotifyArtist);
+            spotifyTrackPlayer.setSpotifyArtistTrackList(topTracksList);
+            final String artistID = spotifyArtist.getSpotifyArtistId();
+            Log.d(TAG, "onCreateView artistId" +  artistID);
             fetchTopTracksTask = new FetchTopTracksTask(TopTracksActivityFragment.this);
             fetchTopTracksTask.execute(artistID);
         }
 
-        topTracksAdapter = new TopTracksAdapter(getActivity(), topTracksList);
+        topTracksAdapter = new TopTracksAdapter(getActivity(), spotifyTrackPlayer);
         linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(topTracksAdapter);
@@ -94,6 +102,14 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onDetach() {
+        if (progressBar != null && progressBar.isShown()) {
+            progressBar.setVisibility(View.GONE);
+        }
+        super.onDetach();
     }
 
     @Override
@@ -115,6 +131,15 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
         isTaskRunning = false;
         if(progressBar != null && progressBar.isShown()){
             progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING) {
+            fetchTopTracksTask.cancel(true);
+            fetchTopTracksTask = null;
         }
     }
 
@@ -145,6 +170,7 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
             SpotifyService spotifyService = spotifyApi.getService();
             Map<String, Object> options = new HashMap<>(1);
             options.put(SPOTIFY_TOP_TRACKS_OPTION_COUNTRY, SPOTIFY_TOP_TRACKS_OPTION_COUNTRY_VALUE);
+            Log.d(TAG, "doInBackground artist id" + artistId);
             try {
                 final Tracks spotifyServiceArtistTopTrack = spotifyService.getArtistTopTrack(artistId, options);
 
@@ -155,8 +181,8 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
                     final String albumArtLargeThumbnailURL = SpotifyUtils.fetchOptimizedImageURL(track.album.images, ALBUM_ART_THUMBNAIL_LARGE);
                     final String previewURL = track.preview_url;
                     topTracksList.add(new SpotifyArtistTrack(trackName, albumName, albumArtSmallThumbnailURL, albumArtLargeThumbnailURL, previewURL));
-
                 }
+
             } catch (RetrofitError e) {
                 Log.e(LOG_TAG, "Error : ", e);
                 spotifyError = SpotifyError.fromRetrofitError(e);

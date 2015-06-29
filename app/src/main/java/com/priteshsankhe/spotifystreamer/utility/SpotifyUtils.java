@@ -28,7 +28,6 @@ public class SpotifyUtils {
                 }
             }
         }
-        Log.d(TAG, "Optimized Thumbnail Url " + optimizedThumbnailURL);
         return optimizedThumbnailURL;
     }
 }

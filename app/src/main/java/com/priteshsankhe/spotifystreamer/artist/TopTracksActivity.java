@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.priteshsankhe.spotifystreamer.R;
-import com.priteshsankhe.spotifystreamer.search.SearchArtistsFragment;
+import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 
 public class TopTracksActivity extends AppCompatActivity {
 
@@ -23,8 +23,9 @@ public class TopTracksActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setTitle(getString(R.string.top_ten_tracks));
 
-        final String artistName = getIntent().getStringExtra(SearchArtistsFragment.INTENT_ARTIST_NAME);
-        getSupportActionBar().setSubtitle(artistName);
+        //final String artistName = getIntent().getStringExtra(SearchArtistsFragment.INTENT_ARTIST_NAME);
+        final SpotifyArtist spotifyArtist = getIntent().getParcelableExtra("SPOTIFY_ARTIST");
+        getSupportActionBar().setSubtitle(spotifyArtist.getArtistName());
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         topTracksActivityFragment = (TopTracksActivityFragment) fragmentManager.findFragmentByTag(TAG_TOP_TRACKS_FRAGMENT);
@@ -33,7 +34,6 @@ public class TopTracksActivity extends AppCompatActivity {
             topTracksActivityFragment = new TopTracksActivityFragment();
             fragmentManager.beginTransaction().add(topTracksActivityFragment, TAG_TOP_TRACKS_FRAGMENT).commit();
         }
-
     }
 
 

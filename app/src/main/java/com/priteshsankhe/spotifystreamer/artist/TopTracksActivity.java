@@ -29,10 +29,13 @@ public class TopTracksActivity extends AppCompatActivity {
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         topTracksActivityFragment = (TopTracksActivityFragment) fragmentManager.findFragmentByTag(TAG_TOP_TRACKS_FRAGMENT);
+        Bundle arguments = new Bundle();
+        arguments.putParcelable("SPOTIFY_ARTIST", spotifyArtist);
 
         if (topTracksActivityFragment == null) {
             topTracksActivityFragment = new TopTracksActivityFragment();
-            fragmentManager.beginTransaction().add(topTracksActivityFragment, TAG_TOP_TRACKS_FRAGMENT).commit();
+            topTracksActivityFragment.setArguments(arguments);
+            fragmentManager.beginTransaction().replace(R.id.fragment, topTracksActivityFragment, TAG_TOP_TRACKS_FRAGMENT).commit();
         }
     }
 

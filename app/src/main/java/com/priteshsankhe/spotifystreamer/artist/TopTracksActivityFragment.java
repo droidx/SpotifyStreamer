@@ -79,15 +79,19 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
                 progressBar.setVisibility(View.VISIBLE);
             }
         } else {
-            topTracksList = new ArrayList<SpotifyArtistTrack>();
-            spotifyArtist = getActivity().getIntent().getParcelableExtra("SPOTIFY_ARTIST");
+            spotifyArtist = new SpotifyArtist();
             spotifyTrackPlayer = new SpotifyTrackPlayer();
-            spotifyTrackPlayer.setArtist(spotifyArtist);
+            topTracksList = new ArrayList<SpotifyArtistTrack>();
+            Bundle arguments = getArguments();
+            if (arguments != null) {
+                spotifyArtist = arguments.getParcelable("SPOTIFY_ARTIST");
+                spotifyTrackPlayer.setArtist(spotifyArtist);
+                final String artistID = spotifyArtist.getSpotifyArtistId();
+                Log.d(TAG, "onCreateView artistId" + artistID);
+                fetchTopTracksTask = new FetchTopTracksTask(TopTracksActivityFragment.this);
+                fetchTopTracksTask.execute(artistID);
+            }
             spotifyTrackPlayer.setSpotifyArtistTrackList(topTracksList);
-            final String artistID = spotifyArtist.getSpotifyArtistId();
-            Log.d(TAG, "onCreateView artistId" +  artistID);
-            fetchTopTracksTask = new FetchTopTracksTask(TopTracksActivityFragment.this);
-            fetchTopTracksTask.execute(artistID);
         }
 
         topTracksAdapter = new TopTracksAdapter(getActivity(), spotifyTrackPlayer);
@@ -129,7 +133,7 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     @Override
     public void onTaskFinished() {
         isTaskRunning = false;
-        if(progressBar != null && progressBar.isShown()){
+        if (progressBar != null && progressBar.isShown()) {
             progressBar.setVisibility(View.GONE);
         }
     }
@@ -137,7 +141,7 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING) {
+        if (fetchTopTracksTask!= null && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING) {
             fetchTopTracksTask.cancel(true);
             fetchTopTracksTask = null;
         }
@@ -194,10 +198,10 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
         protected void onPostExecute(Void aVoid) {
             listener.onTaskFinished();
 
-            if(spotifyError != null){
+            if (spotifyError != null) {
                 Log.d(TAG, spotifyError.getMessage());
             } else {
-                if(topTracksList.isEmpty()){
+                if (topTracksList.isEmpty()) {
                     noResultsFoundTextView.setVisibility(View.VISIBLE);
                     noResultsFoundTextView.setText(R.string.top_tracks_not_found);
                 } else {

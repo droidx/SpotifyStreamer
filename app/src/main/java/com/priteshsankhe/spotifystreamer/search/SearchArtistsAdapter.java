@@ -1,7 +1,6 @@
 package com.priteshsankhe.spotifystreamer.search;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -10,8 +9,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.priteshsankhe.spotifystreamer.MainActivity;
 import com.priteshsankhe.spotifystreamer.R;
-import com.priteshsankhe.spotifystreamer.artist.TopTracksActivity;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 import com.squareup.picasso.Picasso;
 
@@ -27,11 +26,14 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
 
     private Context context;
     private List<SpotifyArtist> spotifyArtistList;
+    private AdapterCallback adapterCallback;
 
     public SearchArtistsAdapter(Context context, final List<SpotifyArtist> spotifyArtistList) {
         this.context = context;
         this.spotifyArtistList = spotifyArtistList;
         SpotifyArtistViewHolder.context = context;
+        this.adapterCallback = (MainActivity) context;
+        SpotifyArtistViewHolder.adapterCallback = this.adapterCallback;
     }
 
     @Override
@@ -59,6 +61,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
         private final TextView spotifyArtistNameTextView;
 
         private SpotifyArtist artist;
+        private static AdapterCallback adapterCallback;
         private static Context context;
 
         public SpotifyArtistViewHolder(View itemView) {
@@ -70,9 +73,12 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
                 @Override
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
-                    Intent intent = new Intent(context, TopTracksActivity.class);
+                    adapterCallback.onItemSelected(artist);
+                    /*Intent intent = new Intent(context, TopTracksActivity.class);
                     intent.putExtra("SPOTIFY_ARTIST", artist);
-                    context.startActivity(intent);
+                    context.startActivity(intent);*/
+
+
                 }
             });
         }
@@ -92,5 +98,9 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
 
     public void setSpotifyArtistList(final List<SpotifyArtist> spotifyArtistList) {
         this.spotifyArtistList = spotifyArtistList;
+    }
+
+    public static interface AdapterCallback{
+        void onItemSelected(SpotifyArtist artist);
     }
 }

@@ -18,6 +18,7 @@ import android.widget.Toast;
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtistTrack;
 import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
+import com.priteshsankhe.spotifystreamer.utility.TimeUtils;
 import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
@@ -99,6 +100,7 @@ public class PlaybackActivityFragment extends Fragment {
         nextTrackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                resetPlaybackOptions();
                 playNextTrack();
             }
         });
@@ -106,6 +108,7 @@ public class PlaybackActivityFragment extends Fragment {
         previousTrackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                resetPlaybackOptions();
                 playPreviousTrack();
             }
         });
@@ -116,7 +119,9 @@ public class PlaybackActivityFragment extends Fragment {
 
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
+                    pauseTrackButton.setImageResource(R.drawable.ic_play);
                 } else if (!mediaPlayer.isPlaying()) {
+                    pauseTrackButton.setImageResource(R.drawable.ic_pause);
                     mediaPlayer.start();
                 }
             }
@@ -134,8 +139,19 @@ public class PlaybackActivityFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                mediaPlayer.seekTo(seekBar.getProgress() * 1000);
-                scheduleSeekbarUpdate();
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.seekTo(seekBar.getProgress() * 1000);
+                    scheduleSeekbarUpdate();
+                } else {
+                    seekBar.setProgress(0);
+                }
+            }
+        });
+
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                pauseTrackButton.setImageResource(R.drawable.ic_play);
             }
         });
 
@@ -145,6 +161,7 @@ public class PlaybackActivityFragment extends Fragment {
     private void playNextTrack() {
         if (spotifyTrackPosition + 1 < spotifyTrackPlayer.getSpotifyArtistTrackList().size()) {
             ++spotifyTrackPosition;
+            pauseTrackButton.setImageResource(R.drawable.ic_pause);
             setUpPlaybackUI();
             playTrack(playbackURL);
         } else {
@@ -155,6 +172,7 @@ public class PlaybackActivityFragment extends Fragment {
     private void playPreviousTrack() {
         if (spotifyTrackPosition - 1 >= 0) {
             --spotifyTrackPosition;
+            pauseTrackButton.setImageResource(R.drawable.ic_pause);
             setUpPlaybackUI();
             playTrack(playbackURL);
         } else {
@@ -177,6 +195,7 @@ public class PlaybackActivityFragment extends Fragment {
     }
 
     private void playTrack(String PLAYBACK_URL) {
+
         try {
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -196,17 +215,26 @@ public class PlaybackActivityFragment extends Fragment {
         }
     }
 
+    private void resetPlaybackOptions() {
+        stopSeekbarUpdate();
+        trackProgressSeekbar.setProgress(0);
+        trackProgressLengthTextView.setVisibility(View.INVISIBLE);
+        trackTotalLengthTextView.setVisibility(View.INVISIBLE);
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         if (mediaPlayer != null) {
             mediaPlayer.stop();
             mediaPlayer.release();
-            mediaPlayer = null;
         }
+        stopSeekbarUpdate();
+        executorService.shutdown();
     }
 
     private void scheduleSeekbarUpdate() {
+        stopSeekbarUpdate();
         if (!executorService.isShutdown()) {
             mScheduleFuture = executorService.scheduleAtFixedRate(
                     new Runnable() {
@@ -230,25 +258,14 @@ public class PlaybackActivityFragment extends Fragment {
             return;
         }
 
-        final String currentProgress = formatMillis(mediaPlayer.getCurrentPosition());
+        trackProgressLengthTextView.setVisibility(View.VISIBLE);
+        trackTotalLengthTextView.setVisibility(View.VISIBLE);
+
+        final String currentProgress = TimeUtils.formatMillis(mediaPlayer.getCurrentPosition());
         trackProgressLengthTextView.setText(currentProgress);
-        trackTotalLengthTextView.setText(formatMillis(mediaPlayer.getDuration()));
+        trackTotalLengthTextView.setText(TimeUtils.formatMillis(mediaPlayer.getDuration()));
         trackProgressSeekbar.setProgress(mediaPlayer.getCurrentPosition() / 1000);
     }
 
-    public static String formatMillis(int millisec) {
-        int seconds = millisec / 1000;
-        int hours = seconds / 3600;
-        seconds %= 3600;
-        int minutes = seconds / 60;
-        seconds %= 60;
-        String time;
-        if (hours > 0) {
-            time = String.format("%d:%02d:%02d", new Object[]{Integer.valueOf(hours), Integer.valueOf(minutes), Integer.valueOf(seconds)});
-        } else {
-            time = String.format("%d:%02d", new Object[]{Integer.valueOf(minutes), Integer.valueOf(seconds)});
-        }
 
-        return time;
-    }
 }

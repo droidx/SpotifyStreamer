@@ -39,6 +39,9 @@ public class PlaybackActivityFragment extends Fragment {
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
     private static final long PROGRESS_UPDATE_INITIAL_INTERVAL = 100;
 
+    private static final String SEEKBAR_POSITION = "SEEKBAR_POSITION";
+    private static final String IS_PLAYING = "IS_PLAYING";
+
     private static String playbackURL = null;
     private MediaPlayer mediaPlayer;
     private SpotifyTrackPlayer spotifyTrackPlayer;
@@ -86,16 +89,37 @@ public class PlaybackActivityFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_playback, container, false);
         ButterKnife.bind(this, rootView);
 
-        spotifyTrackPlayer = getActivity().getIntent().getParcelableExtra("SPOTIFY_TRACK");
-        spotifyTrackPosition = getActivity().getIntent().getIntExtra("SPOTIFY_TRACK_POSITION", -1);
-        mediaPlayer = new MediaPlayer();
-        setUpPlaybackUI();
-        playTrack(playbackURL);
+        if (savedInstanceState != null && savedInstanceState.containsKey(SEEKBAR_POSITION)) {
+            Log.d(TAG, "onCreateView " + savedInstanceState.getInt(SEEKBAR_POSITION));
+            trackProgressSeekbar.setMax(mediaPlayer.getDuration() / 1000);
+            trackProgressSeekbar.setProgress(savedInstanceState.getInt(SEEKBAR_POSITION) / 1000);
+            final boolean isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
+            if (isPlaying) {
+                pauseTrackButton.setImageResource(R.drawable.ic_pause);
+            } else {
+                pauseTrackButton.setImageResource(R.drawable.ic_play);
+            }
+
+            setUpPlaybackUI();
+            scheduleSeekbarUpdate();
+        } else {
+            spotifyTrackPlayer = getActivity().getIntent().getParcelableExtra("SPOTIFY_TRACK");
+            spotifyTrackPosition = getActivity().getIntent().getIntExtra("SPOTIFY_TRACK_POSITION", -1);
+            mediaPlayer = new MediaPlayer();
+            setUpPlaybackUI();
+            playTrack(playbackURL);
+        }
 
         nextTrackButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -265,6 +289,13 @@ public class PlaybackActivityFragment extends Fragment {
         trackProgressLengthTextView.setText(currentProgress);
         trackTotalLengthTextView.setText(TimeUtils.formatMillis(mediaPlayer.getDuration()));
         trackProgressSeekbar.setProgress(mediaPlayer.getCurrentPosition() / 1000);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(SEEKBAR_POSITION, mediaPlayer.getCurrentPosition());
+        outState.putBoolean(IS_PLAYING, mediaPlayer.isPlaying());
     }
 
 

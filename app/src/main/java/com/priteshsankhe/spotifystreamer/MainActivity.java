@@ -49,6 +49,18 @@ public class MainActivity extends AppCompatActivity implements SearchArtistsAdap
     }
 
     @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mTwoPane = savedInstanceState.getBoolean("mTwoPane");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("mTwoPane", mTwoPane);
+    }
+
+    @Override
     public void onItemSelected(SpotifyArtist artist) {
         if (mTwoPane) {
             Bundle args = new Bundle();

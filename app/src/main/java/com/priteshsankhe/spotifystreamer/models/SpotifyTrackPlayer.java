@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * Created by Pritesh on 6/29/2015.
+ * POJO for toptracks playback for a artist
  */
 public class SpotifyTrackPlayer implements Parcelable {
 

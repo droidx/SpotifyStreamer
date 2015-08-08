@@ -5,7 +5,6 @@ import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +31,9 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 
 /**
- * A placeholder fragment containing a simple view.
+ * This fragment is responsible for controlling playback.
+ * Uses MediaPlayer APIs as mentioned in the implementation guide
+ *
  */
 public class PlaybackActivityFragment extends DialogFragment {
 
@@ -80,6 +81,8 @@ public class PlaybackActivityFragment extends DialogFragment {
 
     int spotifyTrackPosition = 0;
     private final Handler handler = new Handler();
+
+    // Use of snippet from the Universal Music Player sample
     private final Runnable updateProgressTask = new Runnable() {
         @Override
         public void run() {
@@ -110,7 +113,6 @@ public class PlaybackActivityFragment extends DialogFragment {
         ButterKnife.bind(this, rootView);
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SEEKBAR_POSITION)) {
-            Log.d(TAG, "onCreateView " + savedInstanceState.getInt(SEEKBAR_POSITION));
             restorePlayback(savedInstanceState);
             setUpPlaybackUI();
             scheduleSeekbarUpdate();
@@ -124,8 +126,6 @@ public class PlaybackActivityFragment extends DialogFragment {
         }
 
         initPlaybackControlClickListeners();
-
-
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {

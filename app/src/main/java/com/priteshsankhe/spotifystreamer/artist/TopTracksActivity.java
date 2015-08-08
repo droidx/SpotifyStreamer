@@ -27,7 +27,6 @@ public class TopTracksActivity extends AppCompatActivity implements TopTrackSele
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setTitle(getString(R.string.top_ten_tracks));
 
-        //final String artistName = getIntent().getStringExtra(SearchArtistsFragment.INTENT_ARTIST_NAME);
         final SpotifyArtist spotifyArtist = getIntent().getParcelableExtra("SPOTIFY_ARTIST");
         getSupportActionBar().setSubtitle(spotifyArtist.getArtistName());
 

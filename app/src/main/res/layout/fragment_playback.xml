@@ -9,15 +9,14 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
-        >
+        android:layout_marginTop="16dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:orientation="vertical">
 
         <ImageView
             android:id="@+id/album_artwork_image_view"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            style="@style/PlaybackTrackImageViewStyle"
             tools:src="@mipmap/ic_launcher" />
 
         <TextView
@@ -25,10 +24,10 @@
             style="?attr/titleTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:gravity="center_horizontal"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="16dp"
             tools:text="Yellow" />
 
         <TextView
@@ -36,9 +35,9 @@
             style="?attr/subtitleTextStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
             android:layout_marginBottom="16dp"
-            tools:text="Coldplay"/>
+            android:gravity="center_horizontal"
+            tools:text="Coldplay" />
 
         <SeekBar
             android:id="@+id/track_progress"
@@ -48,33 +47,31 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/track_length_progress_text_view"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="left"
-                />
+                android:gravity="left" />
 
             <TextView
                 android:id="@+id/track_total_length_text_view"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:gravity="right"
-                />
+                android:gravity="right" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal"
-            android:weightSum="3"
-            android:layout_marginBottom="16dp">
+            android:weightSum="3">
 
             <ImageButton
                 android:id="@+id/previous_track_button"
@@ -103,6 +100,5 @@
         </LinearLayout>
 
     </LinearLayout>
-
 
 </LinearLayout>

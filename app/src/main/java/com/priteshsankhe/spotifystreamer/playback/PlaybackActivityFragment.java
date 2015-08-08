@@ -4,7 +4,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +33,7 @@ import butterknife.ButterKnife;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class PlaybackActivityFragment extends Fragment {
+public class PlaybackActivityFragment extends DialogFragment {
 
     private static final String TAG = PlaybackActivityFragment.class.getSimpleName();
     private static final long PROGRESS_UPDATE_INTERNAL = 1000;
@@ -41,6 +41,7 @@ public class PlaybackActivityFragment extends Fragment {
 
     private static final String SEEKBAR_POSITION = "SEEKBAR_POSITION";
     private static final String IS_PLAYING = "IS_PLAYING";
+    private static final String IS_LOADING = "IS_LOADING";
 
     private static String playbackURL = null;
     private MediaPlayer mediaPlayer;
@@ -88,6 +89,10 @@ public class PlaybackActivityFragment extends Fragment {
     public PlaybackActivityFragment() {
     }
 
+    public static PlaybackActivityFragment newInstance() {
+        return new PlaybackActivityFragment();
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,22 +110,39 @@ public class PlaybackActivityFragment extends Fragment {
             trackProgressSeekbar.setMax(mediaPlayer.getDuration() / 1000);
             trackProgressSeekbar.setProgress(savedInstanceState.getInt(SEEKBAR_POSITION) / 1000);
             final boolean isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
+            final boolean isLoading = savedInstanceState.getBoolean(IS_LOADING);
             if (isPlaying) {
                 pauseTrackButton.setImageResource(R.drawable.ic_pause);
             } else {
                 pauseTrackButton.setImageResource(R.drawable.ic_play);
             }
 
+
             setUpPlaybackUI();
             scheduleSeekbarUpdate();
         } else {
-            spotifyTrackPlayer = getActivity().getIntent().getParcelableExtra("SPOTIFY_TRACK");
-            spotifyTrackPosition = getActivity().getIntent().getIntExtra("SPOTIFY_TRACK_POSITION", -1);
+            Bundle bundle = getArguments();
+            spotifyTrackPlayer = bundle.getParcelable("SPOTIFY_TRACK");
+            spotifyTrackPosition = bundle.getInt("SPOTIFY_TRACK_POSITION", 0);
             mediaPlayer = new MediaPlayer();
             setUpPlaybackUI();
             playTrack(playbackURL);
         }
 
+        initPlaybackControlClickListeners();
+
+
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                pauseTrackButton.setImageResource(R.drawable.ic_play);
+            }
+        });
+
+        return rootView;
+    }
+
+    private void initPlaybackControlClickListeners() {
         nextTrackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -171,15 +193,6 @@ public class PlaybackActivityFragment extends Fragment {
                 }
             }
         });
-
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-                pauseTrackButton.setImageResource(R.drawable.ic_play);
-            }
-        });
-
-        return rootView;
     }
 
     private void playNextTrack() {
@@ -219,8 +232,8 @@ public class PlaybackActivityFragment extends Fragment {
     }
 
     private void playTrack(String PLAYBACK_URL) {
-
         try {
+
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(PLAYBACK_URL);
@@ -244,6 +257,18 @@ public class PlaybackActivityFragment extends Fragment {
         trackProgressSeekbar.setProgress(0);
         trackProgressLengthTextView.setVisibility(View.INVISIBLE);
         trackTotalLengthTextView.setVisibility(View.INVISIBLE);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (getDialog() != null && getRetainInstance())
+            getDialog().setDismissMessage(null);
+        super.onDestroyView();
     }
 
     @Override
@@ -297,6 +322,5 @@ public class PlaybackActivityFragment extends Fragment {
         outState.putInt(SEEKBAR_POSITION, mediaPlayer.getCurrentPosition());
         outState.putBoolean(IS_PLAYING, mediaPlayer.isPlaying());
     }
-
 
 }

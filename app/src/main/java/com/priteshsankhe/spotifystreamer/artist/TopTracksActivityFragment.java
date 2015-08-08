@@ -1,5 +1,6 @@
 package com.priteshsankhe.spotifystreamer.artist;
 
+import android.app.Activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -12,8 +13,10 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.priteshsankhe.spotifystreamer.MainActivity;
 import com.priteshsankhe.spotifystreamer.R;
 import com.priteshsankhe.spotifystreamer.listeners.TaskListener;
+import com.priteshsankhe.spotifystreamer.listeners.TopTrackSelectedListener;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtistTrack;
 import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
@@ -57,6 +60,8 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     private SpotifyTrackPlayer spotifyTrackPlayer;
 
     private FetchTopTracksTask fetchTopTracksTask;
+    private TopTrackSelectedListener topTrackSelectedListener;
+    private boolean isTablet = false;
     private boolean isTaskRunning = false;
 
     public TopTracksActivityFragment() {
@@ -75,7 +80,7 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
                 progressBar.setVisibility(View.VISIBLE);
             }
             topTracksList = savedInstanceState.getParcelableArrayList(SPOTIFY_TOP_TRACKS_LIST);
-            if (fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING && null != progressBar) {
+            if (null!= fetchTopTracksTask && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING && null != progressBar) {
                 progressBar.setVisibility(View.VISIBLE);
             }
         } else {
@@ -94,12 +99,29 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
             spotifyTrackPlayer.setSpotifyArtistTrackList(topTracksList);
         }
 
-        topTracksAdapter = new TopTracksAdapter(getActivity(), spotifyTrackPlayer);
+        topTracksAdapter = new TopTracksAdapter(getActivity(), spotifyTrackPlayer, topTrackSelectedListener);
         linearLayoutManager = new LinearLayoutManager(getActivity());
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(topTracksAdapter);
 
         return rootView;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        final boolean isTablet = getResources().getBoolean(R.bool.isTablet);
+        try {
+            if (isTablet) {
+                topTrackSelectedListener = (MainActivity) activity;
+            } else {
+                topTrackSelectedListener = (TopTracksActivity) activity;
+            }
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnTopTracksSelectedListener");
+        }
+
     }
 
     @Override
@@ -141,7 +163,7 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (fetchTopTracksTask!= null && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING) {
+        if (fetchTopTracksTask != null && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING) {
             fetchTopTracksTask.cancel(true);
             fetchTopTracksTask = null;
         }

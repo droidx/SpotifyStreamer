@@ -4,19 +4,26 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.priteshsankhe.spotifystreamer.artist.TopTracksActivity;
 import com.priteshsankhe.spotifystreamer.artist.TopTracksActivityFragment;
+import com.priteshsankhe.spotifystreamer.listeners.TopTrackSelectedListener;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
+import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
+import com.priteshsankhe.spotifystreamer.playback.PlaybackActivityFragment;
 import com.priteshsankhe.spotifystreamer.search.SearchArtistsAdapter;
 import com.priteshsankhe.spotifystreamer.search.SearchArtistsFragment;
 
 
-public class MainActivity extends AppCompatActivity implements SearchArtistsAdapter.AdapterCallback {
+public class MainActivity extends AppCompatActivity implements SearchArtistsAdapter.AdapterCallback, TopTrackSelectedListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final String TAG_SEARCH_ARTIST_FRAGMENT = "SEARCH_FRAGMENT";
     private static final String TAG_TOP_TRACKS_FRAGMENT = "TOP_TRACKS_FRAGMENT";
+    private static final String PLAYBACK_FRAGMENT = "PLAYBACK_FRAGMENT";
     private SearchArtistsFragment searchArtistsFragment;
+    private PlaybackActivityFragment playbackActivityFragment;
 
     private boolean mTwoPane;
 
@@ -24,9 +31,6 @@ public class MainActivity extends AppCompatActivity implements SearchArtistsAdap
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //TODO handle orientation change on tablet
-        //In tablet, on orientation change the behavior changes - from two pane to single
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         searchArtistsFragment = (SearchArtistsFragment) fragmentManager.findFragmentByTag(TAG_SEARCH_ARTIST_FRAGMENT);
@@ -75,7 +79,21 @@ public class MainActivity extends AppCompatActivity implements SearchArtistsAdap
             intent.putExtra("SPOTIFY_ARTIST", artist);
             startActivity(intent);
         }
+    }
 
+    @Override
+    public void onTrackSelected(int position, SpotifyTrackPlayer spotifyTrackPlayer) {
+        Log.d(TAG, "onTrackSelected ");
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        playbackActivityFragment = (PlaybackActivityFragment) fragmentManager.findFragmentByTag(PLAYBACK_FRAGMENT);
+        Bundle arguments = new Bundle();
+        arguments.putInt("SPOTIFY_TRACK_POSITION", position);
+        arguments.putParcelable("SPOTIFY_TRACK", spotifyTrackPlayer);
 
+        if (playbackActivityFragment == null) {
+            PlaybackActivityFragment playbackActivityFragment = PlaybackActivityFragment.newInstance();
+            playbackActivityFragment.setArguments(arguments);
+            playbackActivityFragment.show(getSupportFragmentManager(), PLAYBACK_FRAGMENT);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.priteshsankhe.spotifystreamer.artist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.NavUtils;
@@ -8,9 +9,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.priteshsankhe.spotifystreamer.R;
+import com.priteshsankhe.spotifystreamer.listeners.TopTrackSelectedListener;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtist;
+import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
+import com.priteshsankhe.spotifystreamer.playback.PlaybackActivity;
 
-public class TopTracksActivity extends AppCompatActivity {
+public class TopTracksActivity extends AppCompatActivity implements TopTrackSelectedListener {
 
     private static final String TAG = TopTracksActivity.class.getSimpleName();
     private static final String TAG_TOP_TRACKS_FRAGMENT = "TOP_TRACKS_FRAGMENT";
@@ -57,5 +61,16 @@ public class TopTracksActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onTrackSelected(final int position, final SpotifyTrackPlayer spotifyTrackPlayer) {
+
+        Bundle bundle = new Bundle();
+        bundle.putInt("SPOTIFY_TRACK_POSITION", position);
+        bundle.putParcelable("SPOTIFY_TRACK", spotifyTrackPlayer);
+        Intent intent = new Intent(this, PlaybackActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
     }
 }

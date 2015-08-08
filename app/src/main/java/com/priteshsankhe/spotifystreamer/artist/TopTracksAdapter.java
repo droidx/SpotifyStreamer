@@ -1,7 +1,6 @@
 package com.priteshsankhe.spotifystreamer.artist;
 
 import android.content.Context;
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,9 +9,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.priteshsankhe.spotifystreamer.R;
+import com.priteshsankhe.spotifystreamer.listeners.TopTrackSelectedListener;
 import com.priteshsankhe.spotifystreamer.models.SpotifyArtistTrack;
 import com.priteshsankhe.spotifystreamer.models.SpotifyTrackPlayer;
-import com.priteshsankhe.spotifystreamer.playback.PlaybackActivity;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -29,10 +28,11 @@ public class TopTracksAdapter extends RecyclerView.Adapter<TopTracksAdapter.TopT
     private List<SpotifyArtistTrack> spotifyArtistTrackList;
     private Context context;
 
-    public TopTracksAdapter(Context context, SpotifyTrackPlayer spotifyTrackPlayer) {
+    public TopTracksAdapter(Context context, SpotifyTrackPlayer spotifyTrackPlayer, TopTrackSelectedListener listener) {
         this.context = context;
         this.spotifyTrackPlayer = spotifyTrackPlayer;
         this.spotifyArtistTrackList = spotifyTrackPlayer.getSpotifyArtistTrackList();
+        TopTracksViewHolder.topTrackSelectedListener = listener;
         TopTracksViewHolder.context = context;
     }
 
@@ -64,6 +64,7 @@ public class TopTracksAdapter extends RecyclerView.Adapter<TopTracksAdapter.TopT
 
         private SpotifyTrackPlayer spotifyTrackPlayer;
         private static Context context;
+        private static TopTrackSelectedListener topTrackSelectedListener;
 
         public TopTracksViewHolder(View itemView) {
             super(itemView);
@@ -74,10 +75,8 @@ public class TopTracksAdapter extends RecyclerView.Adapter<TopTracksAdapter.TopT
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(context, PlaybackActivity.class);
-                    intent.putExtra("SPOTIFY_TRACK_POSITION", getAdapterPosition());
-                    intent.putExtra("SPOTIFY_TRACK", spotifyTrackPlayer);
-                    context.startActivity(intent);
+                    topTrackSelectedListener.onTrackSelected(getAdapterPosition(), spotifyTrackPlayer);
+
                 }
             });
         }

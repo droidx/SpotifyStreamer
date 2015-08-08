@@ -232,6 +232,7 @@ public class SearchArtistsFragment extends Fragment implements TaskListener {
                 }
             } catch (RetrofitError error) {
                 Log.e(LOG_TAG, "Error ", error);
+                isTaskRunning = false;
                 spotifyError = SpotifyError.fromRetrofitError(error);
             }
             return null;

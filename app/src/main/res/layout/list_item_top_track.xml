@@ -11,8 +11,8 @@
 
     <ImageView
         android:id="@+id/list_item_top_track_thumbnail"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="@dimen/track_image_view_width"
+        android:layout_height="@dimen/track_image_view_height"
         android:src="@mipmap/ic_launcher"/>
 
     <LinearLayout

@@ -22,42 +22,20 @@ public class PlaybackActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playback);
 
-        isTablet = getResources().getBoolean(R.bool.isTablet);
         final int spotifyTrackPosition = getIntent().getIntExtra("SPOTIFY_TRACK_POSITION", -1);
         final SpotifyTrackPlayer spotifyTrackPlayer = getIntent().getParcelableExtra("SPOTIFY_TRACK");
-
-        if (isTablet) {
-            Log.d(TAG, "onCreate : isTablet");
-            showDialog(spotifyTrackPosition, spotifyTrackPlayer);
-        } else {
-            Log.d(TAG, "onCreate : isNotTablet");
-            getSupportActionBar().setHomeButtonEnabled(true);
-            getSupportActionBar().setTitle(getString(R.string.top_ten_tracks));
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            playbackActivityFragment = (PlaybackActivityFragment) fragmentManager.findFragmentByTag(PLAYBACK_FRAGMENT);
-            Bundle arguments = new Bundle();
-            arguments.putInt("SPOTIFY_TRACK_POSITION", spotifyTrackPosition);
-            arguments.putParcelable("SPOTIFY_TRACK", spotifyTrackPlayer);
-
-            if (playbackActivityFragment == null) {
-                playbackActivityFragment = new PlaybackActivityFragment();
-                playbackActivityFragment.setArguments(arguments);
-                fragmentManager.beginTransaction().replace(R.id.playback_fragment_container, playbackActivityFragment, PLAYBACK_FRAGMENT).commit();
-            }
-        }
-    }
-
-    private void showDialog(int position, SpotifyTrackPlayer spotifyTrackPlayer) {
+        Log.d(TAG, "onCreate : isNotTablet");
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setTitle(getString(R.string.top_ten_tracks));
         FragmentManager fragmentManager = getSupportFragmentManager();
         playbackActivityFragment = (PlaybackActivityFragment) fragmentManager.findFragmentByTag(PLAYBACK_FRAGMENT);
         Bundle arguments = new Bundle();
-        arguments.putInt("SPOTIFY_TRACK_POSITION", position);
+        arguments.putInt("SPOTIFY_TRACK_POSITION", spotifyTrackPosition);
         arguments.putParcelable("SPOTIFY_TRACK", spotifyTrackPlayer);
-
         if (playbackActivityFragment == null) {
-            PlaybackActivityFragment playbackActivityFragment = PlaybackActivityFragment.newInstance();
+            playbackActivityFragment = new PlaybackActivityFragment();
             playbackActivityFragment.setArguments(arguments);
-            playbackActivityFragment.show(getSupportFragmentManager(), PLAYBACK_FRAGMENT);
+            fragmentManager.beginTransaction().replace(R.id.playback_fragment_container, playbackActivityFragment, PLAYBACK_FRAGMENT).commit();
         }
     }
 

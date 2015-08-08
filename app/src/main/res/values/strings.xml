@@ -14,4 +14,6 @@
     <string name="top_tracks_not_found">No Tracks found!</string>
     <string name="title_activity_playback">PlaybackActivity</string>
     <string name="hello_world">Hello world!</string>
+    <string name="end_of_playlist_message">You have reached the end of the playlist</string>
+    <string name="beginning_of_playlist_message">You have reached the beginning of the playlist</string>
 </resources>

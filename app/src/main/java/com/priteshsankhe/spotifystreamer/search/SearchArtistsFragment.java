@@ -20,6 +20,8 @@ import com.priteshsankhe.spotifystreamer.utility.SpotifyUtils;
 
 import java.util.ArrayList;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -52,10 +54,17 @@ public class SearchArtistsFragment extends Fragment implements TaskListener {
     public static final String INTENT_ARTIST_NAME = "ARTIST_NAME";
 
     // UI elements
-    private RecyclerView recyclerView;
-    private SearchView searchView;
-    private ProgressBar progressBar;
-    private TextView noResultsFoundTextView;
+    @Bind(R.id.artist_list_recycler_view)
+    RecyclerView recyclerView;
+
+    @Bind(R.id.artist_search_view)
+    SearchView searchView;
+
+    @Bind(R.id.result_progress_bar)
+    ProgressBar progressBar;
+
+    @Bind(R.id.search_results_not_found_textview)
+    TextView noResultsFoundTextView;
 
     private SearchArtistsAdapter searchArtistsAdapter;
     private LinearLayoutManager linearLayoutManager;
@@ -75,10 +84,7 @@ public class SearchArtistsFragment extends Fragment implements TaskListener {
                              Bundle savedInstanceState) {
 
         View rootView = inflater.inflate(R.layout.fragment_search_artists, container, false);
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.artist_list_recycler_view);
-        searchView = (SearchView) rootView.findViewById(R.id.artist_search_view);
-        progressBar = (ProgressBar) rootView.findViewById(R.id.result_progress_bar);
-        noResultsFoundTextView = (TextView) rootView.findViewById(R.id.search_results_not_found_textview);
+        ButterKnife.bind(this, rootView);
 
         // Restore state on rotation or if destroyed
         if (savedInstanceState != null) {

@@ -16,6 +16,9 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
 /**
  * Created by Pritesh on 6/4/2015.
  * RecyclerView adapter for spotify artist data.
@@ -57,8 +60,11 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
 
     public static class SpotifyArtistViewHolder extends RecyclerView.ViewHolder {
 
-        private final ImageView spotifyArtistThumbnail;
-        private final TextView spotifyArtistNameTextView;
+        @Bind(R.id.list_item_search_result_thumbnail)
+        ImageView spotifyArtistThumbnail;
+
+        @Bind(R.id.list_item_search_result_textview)
+        TextView spotifyArtistNameTextView;
 
         private SpotifyArtist artist;
         private static AdapterCallback adapterCallback;
@@ -66,19 +72,13 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
 
         public SpotifyArtistViewHolder(View itemView) {
             super(itemView);
-            spotifyArtistThumbnail = (ImageView) itemView.findViewById(R.id.list_item_search_result_thumbnail);
-            spotifyArtistNameTextView = (TextView) itemView.findViewById(R.id.list_item_search_result_textview);
+            ButterKnife.bind(this, itemView);
 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Log.d(TAG, "Element " + getAdapterPosition() + " clicked " + artist.getArtistName());
                     adapterCallback.onItemSelected(artist);
-                    /*Intent intent = new Intent(context, TopTracksActivity.class);
-                    intent.putExtra("SPOTIFY_ARTIST", artist);
-                    context.startActivity(intent);*/
-
-
                 }
             });
         }
@@ -100,7 +100,7 @@ public class SearchArtistsAdapter extends RecyclerView.Adapter<SearchArtistsAdap
         this.spotifyArtistList = spotifyArtistList;
     }
 
-    public static interface AdapterCallback{
+    public static interface AdapterCallback {
         void onItemSelected(SpotifyArtist artist);
     }
 }

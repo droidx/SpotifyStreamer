@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -49,9 +51,14 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
 
     private static final String SPOTIFY_TOP_TRACKS_LIST = "SPOTIFY_TOP_TRACKS_LIST";
 
-    private RecyclerView recyclerView;
-    private ProgressBar progressBar;
-    private TextView noResultsFoundTextView;
+    @Bind(R.id.top_tracks_list_recycler_view)
+    RecyclerView recyclerView;
+
+    @Bind(R.id.result_progress_bar)
+    ProgressBar progressBar;
+
+    @Bind(R.id.search_results_not_found_textview)
+    TextView noResultsFoundTextView;
 
     private TopTracksAdapter topTracksAdapter;
     private LinearLayoutManager linearLayoutManager;
@@ -71,16 +78,14 @@ public class TopTracksActivityFragment extends Fragment implements TaskListener 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_top_tracks, container, false);
-        recyclerView = (RecyclerView) rootView.findViewById(R.id.top_tracks_list_recycler_view);
-        progressBar = (ProgressBar) rootView.findViewById(R.id.result_progress_bar);
-        noResultsFoundTextView = (TextView) rootView.findViewById(R.id.search_results_not_found_textview);
+        ButterKnife.bind(this, rootView);
 
         if (savedInstanceState != null) {
             if (isTaskRunning && progressBar != null) {
                 progressBar.setVisibility(View.VISIBLE);
             }
             topTracksList = savedInstanceState.getParcelableArrayList(SPOTIFY_TOP_TRACKS_LIST);
-            if (null!= fetchTopTracksTask && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING && null != progressBar) {
+            if (null != fetchTopTracksTask && fetchTopTracksTask.getStatus() == AsyncTask.Status.PENDING && null != progressBar) {
                 progressBar.setVisibility(View.VISIBLE);
             }
         } else {

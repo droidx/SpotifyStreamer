@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,6 +75,9 @@ public class PlaybackActivityFragment extends DialogFragment {
     @Bind(R.id.next_track_button)
     ImageButton nextTrackButton;
 
+    @Bind(R.id.playback_progress)
+    ProgressBar playbackProgress;
+
     int spotifyTrackPosition = 0;
     private final Handler handler = new Handler();
     private final Runnable updateProgressTask = new Runnable() {
@@ -107,17 +111,7 @@ public class PlaybackActivityFragment extends DialogFragment {
 
         if (savedInstanceState != null && savedInstanceState.containsKey(SEEKBAR_POSITION)) {
             Log.d(TAG, "onCreateView " + savedInstanceState.getInt(SEEKBAR_POSITION));
-            trackProgressSeekbar.setMax(mediaPlayer.getDuration() / 1000);
-            trackProgressSeekbar.setProgress(savedInstanceState.getInt(SEEKBAR_POSITION) / 1000);
-            final boolean isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
-            final boolean isLoading = savedInstanceState.getBoolean(IS_LOADING);
-            if (isPlaying) {
-                pauseTrackButton.setImageResource(R.drawable.ic_pause);
-            } else {
-                pauseTrackButton.setImageResource(R.drawable.ic_play);
-            }
-
-
+            restorePlayback(savedInstanceState);
             setUpPlaybackUI();
             scheduleSeekbarUpdate();
         } else {
@@ -140,6 +134,24 @@ public class PlaybackActivityFragment extends DialogFragment {
         });
 
         return rootView;
+    }
+
+    private void restorePlayback(Bundle savedInstanceState) {
+        trackProgressSeekbar.setMax(mediaPlayer.getDuration() / 1000);
+        trackProgressSeekbar.setProgress(savedInstanceState.getInt(SEEKBAR_POSITION) / 1000);
+        final boolean isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
+        final boolean isLoading = savedInstanceState.getBoolean(IS_LOADING);
+        if (isLoading) {
+            playbackProgress.setVisibility(View.VISIBLE);
+        } else {
+            playbackProgress.setVisibility(View.GONE);
+        }
+
+        if (isPlaying) {
+            pauseTrackButton.setImageResource(R.drawable.ic_pause);
+        } else {
+            pauseTrackButton.setImageResource(R.drawable.ic_play);
+        }
     }
 
     private void initPlaybackControlClickListeners() {
@@ -202,7 +214,7 @@ public class PlaybackActivityFragment extends DialogFragment {
             setUpPlaybackUI();
             playTrack(playbackURL);
         } else {
-            Toast.makeText(getActivity(), "You have reached the end of the playlist", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.end_of_playlist_message, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -213,14 +225,13 @@ public class PlaybackActivityFragment extends DialogFragment {
             setUpPlaybackUI();
             playTrack(playbackURL);
         } else {
-            Toast.makeText(getActivity(), "You have reached the beginning of the playlist", Toast.LENGTH_LONG).show();
+            Toast.makeText(getActivity(), R.string.beginning_of_playlist_message, Toast.LENGTH_LONG).show();
         }
     }
 
 
     private void setUpPlaybackUI() {
         final SpotifyArtistTrack spotifyArtistTrack = spotifyTrackPlayer.getSpotifyArtistTrackList().get(spotifyTrackPosition);
-        Log.d(TAG, "setUpPlaybackUI " + spotifyArtistTrack.toString());
         playbackURL = spotifyArtistTrack.getPreviewURL();
         final String albumArtworkUrl = spotifyArtistTrack.getAlbumArtLargeThumbnailURL();
         final String trackName = spotifyArtistTrack.getTrackName();
@@ -233,7 +244,7 @@ public class PlaybackActivityFragment extends DialogFragment {
 
     private void playTrack(String PLAYBACK_URL) {
         try {
-
+            resetPlaybackOptions();
             mediaPlayer.reset();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setDataSource(PLAYBACK_URL);
@@ -242,7 +253,9 @@ public class PlaybackActivityFragment extends DialogFragment {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     mp.start();
+                    playbackProgress.setVisibility(View.GONE);
                     trackProgressSeekbar.setMax((int) mp.getDuration() / 1000);
+                    pauseTrackButton.setImageResource(R.drawable.ic_pause);
                     scheduleSeekbarUpdate();
                 }
             });
@@ -257,12 +270,20 @@ public class PlaybackActivityFragment extends DialogFragment {
         trackProgressSeekbar.setProgress(0);
         trackProgressLengthTextView.setVisibility(View.INVISIBLE);
         trackTotalLengthTextView.setVisibility(View.INVISIBLE);
+        playbackProgress.setVisibility(View.VISIBLE);
     }
 
-    @Override
+   /*
+   This stops the player on screen rotation so commenting it now
+   @Override
     public void onPause() {
         super.onPause();
-    }
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            pauseTrackButton.setImageResource(R.drawable.ic_play);
+        }
+        stopSeekbarUpdate();
+    }*/
 
     @Override
     public void onDestroyView() {
@@ -298,7 +319,7 @@ public class PlaybackActivityFragment extends DialogFragment {
 
     private void stopSeekbarUpdate() {
         if (mScheduleFuture != null) {
-            mScheduleFuture.cancel(false);
+            mScheduleFuture.cancel(true);
         }
     }
 
@@ -313,7 +334,7 @@ public class PlaybackActivityFragment extends DialogFragment {
         final String currentProgress = TimeUtils.formatMillis(mediaPlayer.getCurrentPosition());
         trackProgressLengthTextView.setText(currentProgress);
         trackTotalLengthTextView.setText(TimeUtils.formatMillis(mediaPlayer.getDuration()));
-        trackProgressSeekbar.setProgress(mediaPlayer.getCurrentPosition() / 1000);
+        trackProgressSeekbar.setProgress((int) Math.ceil(mediaPlayer.getCurrentPosition() / 1000));
     }
 
     @Override
@@ -321,6 +342,7 @@ public class PlaybackActivityFragment extends DialogFragment {
         super.onSaveInstanceState(outState);
         outState.putInt(SEEKBAR_POSITION, mediaPlayer.getCurrentPosition());
         outState.putBoolean(IS_PLAYING, mediaPlayer.isPlaying());
+        outState.putBoolean(IS_LOADING, playbackProgress.isShown());
     }
 
 }
